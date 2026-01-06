@@ -59,7 +59,7 @@ function showWelcomeMessage() {
   term.writeln(" ------------------------------------------------");
   term.writeln(" User Identity Verified: \x1b[1;36mM.Abdullah Iqbal\x1b[0m");
   term.writeln(
-    " Role: \x1b[32mCS Junior @ FAST-NU\x1b[0m | \x1b[32mAspiring Data Scientist\x1b[0m"
+    " Role: \x1b[32mCS Major @ FAST-NU\x1b[0m | \x1b[32mAspiring Data Scientist\x1b[0m"
   );
   term.writeln(" ------------------------------------------------");
   term.writeln(" \x1b[90m> Neural Link... \x1b[32mActive\x1b[0m");
@@ -70,6 +70,48 @@ function showWelcomeMessage() {
     "\r\n \x1b[3m\x1b[90mEngineered & Developed by M.Abdullah Iqbal\x1b[0m"
   );
   term.writeln("\r\n Ready for input, Commander.\r\n");
+}
+
+// === VOICE MODULE (IMPROVED) ===
+let selectedVoice = null;
+
+// Load voices when they are ready (Chrome/Electron loads them async)
+window.speechSynthesis.onvoiceschanged = () => {
+  const voices = window.speechSynthesis.getVoices();
+  console.log("=== AVAILABLE VOICES ===");
+  voices.forEach((v) => console.log(`Name: ${v.name} | Lang: ${v.lang}`));
+
+  // PRIORITY LIST: Try to find these specific high-quality voices
+  selectedVoice =
+    voices.find((v) => v.name.includes("Google US English")) || // Best free one usually
+    voices.find((v) => v.name.includes("Microsoft Aria Online (Natural)")) || // Amazing if available
+    voices.find((v) => v.name.includes("Natural")) ||
+    voices.find((v) => v.name.includes("Zira")); // Fallback
+};
+
+function speak(text) {
+  if (!text) return;
+
+  // 1. Stop any current speech
+  window.speechSynthesis.cancel();
+
+  // 2. Clean text
+  const cleanText = text.replace(/^AI:\s*/i, "").trim();
+
+  // 3. Create utterance
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+
+  // 4. Assign the best voice we found
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  }
+
+  // 5. TUNING: Make it sound more "AI" and less "GPS"
+  utterance.rate = 1.05; // Slightly faster
+  utterance.pitch = 0.9; // Slightly lower (more serious)
+
+  // 6. Speak
+  window.speechSynthesis.speak(utterance);
 }
 
 // Initial Bootup
@@ -279,6 +321,7 @@ inputField.addEventListener("keydown", async (e) => {
       // 1. Check if it's explicitly marked as Chat
       if (aiResponse.startsWith("AI:")) {
         term.writeln("\r\n\x1b[1;36m" + aiResponse + "\x1b[0m\r\n");
+        speak(aiResponse);
       }
       // 2. Safety Check (Catch-all for chat)
       else if (
@@ -290,6 +333,7 @@ inputField.addEventListener("keydown", async (e) => {
         !aiResponse.includes("Move")
       ) {
         term.writeln("\r\n\x1b[1;36m AI: " + aiResponse + "\x1b[0m\r\n");
+        speak(aiResponse);
       }
       // 3. Otherwise, Execute
       else {

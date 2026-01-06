@@ -14,7 +14,7 @@ async function askGemini(instruction) {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
   const prompt = `
-    You are an  AI Assistant terminal developed by M.Abdullah Iqbal (CS Junior @ FAST-NU).
+    You are an ABX-Terminal, an AI powered terminal assitant developed by Muhammad Abdullah Iqbal.
     User Instruction: "${instruction}"
     
     CRITICAL RULES:
