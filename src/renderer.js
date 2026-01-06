@@ -36,6 +36,23 @@ term.loadAddon(fitAddon);
 const container = document.getElementById("terminal-container");
 term.open(container);
 
+// === FORCE HIDE SCROLLBAR (THE INJECTOR) ===
+const style = document.createElement("style");
+style.textContent = `
+    ::-webkit-scrollbar {
+        display: none !important;
+        width: 0px !important;
+        background: transparent !important;
+    }
+    .xterm-viewport::-webkit-scrollbar {
+        display: none !important;
+        width: 0px !important;
+        background: transparent !important;
+    }
+`;
+document.head.appendChild(style);
+// ==========================================
+
 // === REUSABLE WELCOME FUNCTION (Fixes CLS Crash) ===
 function showWelcomeMessage() {
   term.writeln("\x1b[1;35m ABX-TERMINAL v1.0 /// SYSTEM ONLINE \x1b[0m");
@@ -56,9 +73,29 @@ function showWelcomeMessage() {
 }
 
 // Initial Bootup
+// Initial Bootup
 setTimeout(() => {
   fitAddon.fit();
-  showWelcomeMessage(); // Call the function here
+  showWelcomeMessage();
+
+  // === THE FINAL SCROLLBAR KILLER ===
+  // We inject this 100ms after startup to overwrite Xterm's defaults
+  const css = `
+        .xterm-viewport::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb {
+            display: none !important;
+        }
+    `;
+  const head = document.head || document.getElementsByTagName("head")[0];
+  const style = document.createElement("style");
+  style.appendChild(document.createTextNode(css));
+  head.appendChild(style);
+  // =================================
 }, 100);
 
 // 2. LISTEN FOR OUTPUT
