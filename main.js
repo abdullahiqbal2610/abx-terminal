@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session } = require("electron"); // <--- Added 'session' here
+const { app, BrowserWindow, ipcMain, session } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -14,23 +14,21 @@ function createWindow() {
     backgroundColor: "#00000000",
     titleBarStyle: "hidden",
     webPreferences: {
-      nodeIntegration: true, // ENABLED
-      contextIsolation: false, // DISABLED
+      nodeIntegration: true,
+      contextIsolation: false,
       enableRemoteModule: true,
     },
   });
 
-  // === NEW ADDITION: GRANT MICROPHONE PERMISSION ===
-  // This must be done BEFORE loading the file
+  // === PERMISSIONS ===
   session.defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
       if (permission === "media") {
-        return callback(true); // Approve Microphone access
+        return callback(true);
       }
       callback(false);
     }
   );
-  // =================================================
 
   mainWindow.loadFile("index.html");
 
@@ -39,6 +37,8 @@ function createWindow() {
   const args = ["-NoLogo", "-NoExit", "-Command", "-"];
 
   console.log("Spawning PowerShell...");
+
+  // === REVERTED: REMOVED CWD SETTING ===
   shellProcess = spawn(shell, args, {
     stdio: ["pipe", "pipe", "pipe"],
   });
@@ -63,9 +63,10 @@ function createWindow() {
     }
   });
 }
+
 ipcMain.on("app-close", () => {
   if (shellProcess) shellProcess.kill();
-  app.quit(); // Kills the app completely
+  app.quit();
 });
 
 app.whenReady().then(createWindow);
