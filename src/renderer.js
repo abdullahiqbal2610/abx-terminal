@@ -57,46 +57,55 @@ document.head.appendChild(style);
 // Types text character-by-character.
 // 'delay' is the speed in ms (Lower = Faster).
 async function typeLine(text, delay = 15) {
-    for (const char of text) {
-        term.write(char);
-        await new Promise(r => setTimeout(r, delay));
-    }
-    term.write('\r\n'); // Press Enter after the line
+  for (const char of text) {
+    term.write(char);
+    await new Promise((r) => setTimeout(r, delay));
+  }
+  term.write("\r\n"); // Press Enter after the line
 }
 
 // === ANIMATED WELCOME FUNCTION ===
 async function showWelcomeMessage() {
-    // Define Colors for cleaner code
-    const magenta = "\x1b[1;35m";
-    const cyan = "\x1b[1;36m";
-    const green = "\x1b[32m";
-    const gray = "\x1b[90m";
-    const italic = "\x1b[3m";
-    const reset = "\x1b[0m";
+  // Define Colors for cleaner code
+  const magenta = "\x1b[1;35m";
+  const cyan = "\x1b[1;36m";
+  const green = "\x1b[32m";
+  const gray = "\x1b[90m";
+  const italic = "\x1b[3m";
+  const reset = "\x1b[0m";
 
-    term.clear(); // Wipe screen before starting
+  term.clear(); // Wipe screen before starting
 
-    // 1. Header (Fast)
-    await typeLine(`${magenta} ABX-TERMINAL v1.0 /// SYSTEM ONLINE ${reset}`, 5);
-    await typeLine(" ------------------------------------------------", 1);
+  // 1. Header (Fast)
+  await typeLine(`${magenta} ABX-TERMINAL v1.0 /// SYSTEM ONLINE ${reset}`, 5);
+  await typeLine(" ------------------------------------------------", 1);
 
-    // 2. User Info (Standard Speed)
-    await typeLine(` User Identity Verified: ${cyan}M.Abdullah Iqbal${reset}`, 15);
-    await typeLine(` Role: ${green}CS Major @ FAST-NU${reset} | ${green}Aspiring Data Scientist${reset}`, 10);
-    await typeLine(" ------------------------------------------------", 1);
+  // 2. User Info (Standard Speed)
+  await typeLine(
+    ` User Identity Verified: ${cyan}M.Abdullah Iqbal${reset}`,
+    15
+  );
+  await typeLine(
+    ` Role: ${green}CS Major @ FAST-NU${reset} | ${green}Aspiring Data Scientist${reset}`,
+    10
+  );
+  await typeLine(" ------------------------------------------------", 1);
 
-    // 3. System Checks (Add slight pauses for realism)
-    await new Promise(r => setTimeout(r, 200)); // Processing pause...
-    await typeLine(` ${gray}> Neural Link... ${green}Active${reset}`, 20);
-    
-    await new Promise(r => setTimeout(r, 200)); // Processing pause...
-    await typeLine(` ${gray}> Gemini 2.5...  ${green}Connected${reset}`, 20);
+  // 3. System Checks (Add slight pauses for realism)
+  await new Promise((r) => setTimeout(r, 200)); // Processing pause...
+  await typeLine(` ${gray}> Neural Link... ${green}Active${reset}`, 20);
 
-    // 4. Signature & Ready (Slow & Dramatic)
-    await new Promise(r => setTimeout(r, 400));
-    await typeLine(`\r\n ${italic}${gray}Engineered & Developed by M.Abdullah Iqbal${reset}`, 10);
-    
-    term.writeln("\r\n Ready for input, Commander.\r\n");
+  await new Promise((r) => setTimeout(r, 200)); // Processing pause...
+  await typeLine(` ${gray}> Gemini 2.5...  ${green}Connected${reset}`, 20);
+
+  // 4. Signature & Ready (Slow & Dramatic)
+  await new Promise((r) => setTimeout(r, 400));
+  await typeLine(
+    `\r\n ${italic}${gray}Engineered & Developed by M.Abdullah Iqbal${reset}`,
+    10
+  );
+
+  term.writeln("\r\n Ready for input, Commander.\r\n");
 }
 
 // === VOICE MODULE (IMPROVED) ===
@@ -140,15 +149,24 @@ function speak(text) {
   // 6. Speak
   window.speechSynthesis.speak(utterance);
 }
-
-// Initial Bootup
-// Initial Bootup
+// // Initial Bootup Sequence
 setTimeout(() => {
   fitAddon.fit();
-  showWelcomeMessage();
+
+  // === 1. THE GHOST MANEUVER 👻 ===
+  // This secretly navigates to your specific OneDrive Desktop folder
+  const magicPath = "cd C:\\Users\\abdul\\OneDrive\\Desktop";
+  ipcRenderer.send("terminal-keystroke", magicPath + "\r\n");
+
+  // === 2. HIDE THE EVIDENCE ===
+  // We wait 100ms for the CD command to finish, then clear the screen
+  // and start the cool typewriter animation.
+  setTimeout(() => {
+    term.clear();
+    showWelcomeMessage();
+  }, 100);
 
   // === THE FINAL SCROLLBAR KILLER ===
-  // We inject this 100ms after startup to overwrite Xterm's defaults
   const css = `
         .xterm-viewport::-webkit-scrollbar {
             display: none !important;
