@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+    />
+    <title>ABX-TERMINAL</title>
+
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <div id="starsContainer" class="stars-container"></div>
+
+    <div class="drag-bar">ABX // TERMINAL</div>
+
+    <div id="terminal-container"></div>
+
+    <div class="command-deck">
+      <div class="input-wrapper">
+        <span class="prompt-symbol">❯</span>
+        <input
+          type="text"
+          id="commandInput"
+          placeholder="Awaiting command..."
+          autocomplete="off"
+          autofocus
+        />
+        <div class="ai-status">AI READY</div>
+      </div>
+    </div>
+
+    <script src="./src/renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,138 @@
+/* === 1. CORE WINDOW (THE GLASS) === */
+body {
+  margin: 0; /* Fixes the "transparent edges" gap */
+  height: 100vh;
+  width: 100vw;
+  /* The Magic Combo: Low Opacity + High Blur */
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(15px);
+  color: #e0e0e0;
+  font-family: "Consolas", "Courier New", monospace;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Neon Border Glow */
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px; /* Smooth corners */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* === 2. DRAG BAR === */
+.drag-bar {
+  height: 32px;
+  background: rgba(255, 255, 255, 0.05); /* Slight highlight */
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* === 3. TERMINAL CONTAINER === */
+#terminal-container {
+  flex: 1;
+  min-height: 200px;
+  padding: 15px 25px; /* More breathing room */
+  overflow: hidden;
+  background: transparent; /* Ensure terminal doesn't block stars */
+}
+
+/* Scrollbar styling */
+.xterm-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.4);
+  border-radius: 3px;
+}
+
+/* === 4. COMMAND DECK (Bottom Input) === */
+.command-deck {
+  height: 65px;
+  background: rgba(0, 0, 0, 0.3); /* Darker stripe at bottom */
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+  display: flex;
+  align-items: center;
+  padding: 0 25px;
+  position: relative;
+  z-index: 10; /* Keep it above stars */
+}
+
+.input-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.prompt-symbol {
+  color: #a855f7;
+  font-size: 1.4rem;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+}
+
+#commandInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: "Consolas", monospace;
+  font-size: 1.1rem;
+  outline: none;
+  caret-color: #a855f7;
+}
+
+.ai-status {
+  font-size: 0.7rem;
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* === 5. STARS (BRIGHTER & BIGGER) === */
+.stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Behind everything */
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: starPulse 4s ease-in-out infinite;
+  /* Increased base glow so they pop against the background */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+}
+
+/* Colors - Increased Intensity */
+.star:nth-child(odd) {
+  filter: drop-shadow(0 0 5px #60a5fa);
+}
+.star:nth-child(even) {
+  filter: drop-shadow(0 0 5px #a78bfa);
+}
+
+@keyframes starPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  }
+}
