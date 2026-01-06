@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, session } = require("electron"); // <--- Added 'session' here
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -14,18 +14,27 @@ function createWindow() {
     backgroundColor: "#00000000",
     titleBarStyle: "hidden",
     webPreferences: {
-      // We don't even need preload anymore
       nodeIntegration: true, // ENABLED
       contextIsolation: false, // DISABLED
       enableRemoteModule: true,
     },
   });
 
+  // === NEW ADDITION: GRANT MICROPHONE PERMISSION ===
+  // This must be done BEFORE loading the file
+  session.defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      if (permission === "media") {
+        return callback(true); // Approve Microphone access
+      }
+      callback(false);
+    }
+  );
+  // =================================================
+
   mainWindow.loadFile("index.html");
 
   // === FORCE POWERSHELL INTERACTIVE MODE ===
-  // -NoLogo: Hides the startup copyright text
-  // -NoExit: Keeps it running after a command
   const shell = "powershell.exe";
   const args = ["-NoLogo", "-NoExit", "-Command", "-"];
 
@@ -50,11 +59,14 @@ function createWindow() {
   // 2. Handle Input from UI
   ipcMain.on("terminal-keystroke", (event, command) => {
     if (shellProcess && shellProcess.stdin) {
-      // Write the command + New Line (\r\n is safer for Windows)
       shellProcess.stdin.write(command + "\r\n");
     }
   });
 }
+ipcMain.on("app-close", () => {
+  if (shellProcess) shellProcess.kill();
+  app.quit(); // Kills the app completely
+});
 
 app.whenReady().then(createWindow);
 

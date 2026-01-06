@@ -14,13 +14,15 @@ async function askGemini(instruction) {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
   const prompt = `
-    You are an AI Translator for Windows PowerShell.
+    You are an  AI Assistant terminal developed by M.Abdullah Iqbal (CS Junior @ FAST-NU).
     User Instruction: "${instruction}"
     
-    Rules:
-    1. Output ONLY the valid PowerShell command. No explanations. No markdown.
-    2. If creating files or folders, ALWAYS use the '-Force' flag (e.g., New-Item -Path "folder/file.txt" -Force) so it creates parent directories automatically.
-    3. If the user asks a general question (e.g., "who is..."), answer it briefly in plain text, but prefix it with "AI: ".
+    CRITICAL RULES:
+    1. If the user asks to DO something (create folder, list files), output ONLY the PowerShell command.
+    2. If the user asks a QUESTION (e.g., "What is the capital?", "Hello"), you MUST prefix your answer with "AI: ".
+       - CORRECT: "AI: The capital is Islamabad."
+       - INCORRECT: "Islamabad"
+    3. If creating files, ALWAYS use '-Force'.
     4. If the instruction is dangerous, return "Write-Host 'Command blocked for safety'".
     `;
 

@@ -136,3 +136,17 @@ body {
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
   }
 }
+
+/* === 7. SIGNATURE WATERMARK === */
+.watermark {
+  position: absolute;
+  bottom: 85px; /* Just above the input bar */
+  right: 25px;
+  font-family: "Consolas", monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.15); /* Very faint ghost text */
+  pointer-events: none; /* Let clicks pass through it */
+  z-index: 5;
+  text-transform: uppercase;
+}
