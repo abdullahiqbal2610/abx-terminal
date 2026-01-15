@@ -363,27 +363,60 @@ inputField.addEventListener("keydown", async (e) => {
       const aiResponse = await askGemini(instruction);
 
       // === SMARTER EXECUTION LOGIC ===
-      // 1. Check if it's explicitly marked as Chat
-      if (aiResponse.startsWith("AI:")) {
-        term.writeln("\r\n\x1b[1;36m" + aiResponse + "\x1b[0m\r\n");
-        speak(aiResponse);
-      }
-      // 2. Safety Check (Catch-all for chat)
-      else if (
-        !aiResponse.includes("-") &&
-        !aiResponse.includes("Get") &&
-        !aiResponse.includes("New") &&
-        !aiResponse.includes("Set") &&
-        !aiResponse.includes("Remove") &&
-        !aiResponse.includes("Move")
-      ) {
-        term.writeln("\r\n\x1b[1;36m AI: " + aiResponse + "\x1b[0m\r\n");
-        speak(aiResponse);
-      }
-      // 3. Otherwise, Execute
-      else {
-        term.writeln("\x1b[35m [AI] Executing: " + aiResponse + "\x1b[0m");
-        ipcRenderer.send("terminal-keystroke", aiResponse + "\r\n");
+      if (isExplicitAI || isImplicitAI) {
+        term.writeln("\x1b[35m [AI] Processing...\x1b[0m");
+
+        const instruction = isExplicitAI ? rawCommand.substring(1) : rawCommand;
+
+        try {
+          const aiResponse = await askGemini(instruction);
+
+          // === CRITICAL FIX: DEFENSIVE CODING ===
+          // We check if aiResponse exists AND is a string before using it.
+          if (!aiResponse || typeof aiResponse !== "string") {
+            throw new Error("AI returned an empty or invalid response.");
+          }
+
+          // === BATCH EXECUTION LOGIC ===
+
+          // 1. IS IT A COMMAND? (Handles Single & Batch)
+          if (aiResponse.startsWith("CMD:")) {
+            const rawCmds = aiResponse.replace("CMD:", "").trim();
+            // Split by our special delimiter
+            const commandList = rawCmds.split("|||");
+
+            for (const cmd of commandList) {
+              const cleanCmd = cmd.trim();
+              if (cleanCmd) {
+                term.writeln("\x1b[35m [AI] Queueing: " + cleanCmd + "\x1b[0m");
+                ipcRenderer.send("terminal-keystroke", cleanCmd + "\r\n");
+
+                // Small delay so commands don't trip over each other
+                await new Promise((r) => setTimeout(r, 300));
+              }
+            }
+          }
+
+          // 2. IS IT CHAT?
+          else if (aiResponse.startsWith("AI:")) {
+            const chatText = aiResponse.replace("AI:", "").trim();
+            term.writeln("\r\n\x1b[1;36m AI: " + chatText + "\x1b[0m\r\n");
+            speak(chatText);
+          }
+
+          // 3. FALLBACK (Safety Net)
+          // If the AI forgets the prefix, treat it as chat to be safe
+          else {
+            term.writeln("\r\n\x1b[1;36m AI: " + aiResponse + "\x1b[0m\r\n");
+            speak(aiResponse);
+          }
+        } catch (err) {
+          // This catches any TypeErrors or Network errors and prints them safely
+          console.error("Processing Error:", err);
+          term.writeln(
+            "\r\n\x1b[31m [SYSTEM ERROR] " + err.message + "\x1b[0m\r\n"
+          );
+        }
       }
     } else {
       ipcRenderer.send("terminal-keystroke", rawCommand + "\r\n");
@@ -405,7 +438,7 @@ window.addEventListener("resize", () => fitAddon.fit());
 function createStars() {
   const starContainer = document.getElementById("starsContainer");
   if (!starContainer) return;
-  const starCount = 90;
+  const starCount = 200;
   starContainer.innerHTML = "";
   for (let i = 0; i < starCount; i++) {
     const star = document.createElement("div");
