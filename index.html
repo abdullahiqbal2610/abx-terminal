@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -17,48 +17,55 @@
     <div class="drag-bar">ABX // TERMINAL</div>
 
     <div class="main-deck">
-        
-        <div class="sidebar">
-            <div class="widget">
-                <div class="widget-title">CPU LOAD</div>
-                <div class="bar-container">
-                    <div class="bar-fill" id="cpu-bar" style="width: 45%"></div>
-                </div>
-            </div>
-            
-            <div class="widget">
-                <div class="widget-title">MEMORY</div>
-                <div class="bar-container">
-                    <div class="bar-fill" id="ram-bar" style="width: 60%"></div>
-                </div>
-            </div>
-
-            <div class="widget">
-                <div class="widget-title">NET STATUS</div>
-                <div class="status-text online">ONLINE</div>
-            </div>
+      <div class="sidebar">
+        <div class="widget">
+          <div class="widget-header">
+            <div class="widget-title">CPU LOAD</div>
+            <div class="widget-val" id="cpu-val">0%</div>
+          </div>
+          <div class="bar-container">
+            <div class="bar-fill" id="cpu-bar" style="width: 45%"></div>
+          </div>
         </div>
 
-        <div id="terminal-container"></div>
+        <div class="widget">
+          <div class="widget-header">
+            <div class="widget-title">MEMORY</div>
+            <div class="widget-val" id="ram-val">0%</div>
+          </div>
+          <div class="bar-container">
+            <div class="bar-fill" id="ram-bar" style="width: 60%"></div>
+          </div>
+        </div>
+
+        <div class="widget">
+          <div class="widget-title">NET STATUS</div>
+          <div class="status-text online">ONLINE</div>
+        </div>
+      </div>
+
+      <div id="terminal-container"></div>
     </div>
 
     <div class="command-deck">
       <div class="input-wrapper">
-            <span class="prompt-symbol">❯</span>
-            <input 
-                type="text" 
-                id="commandInput" 
-                placeholder="Awaiting command..." 
-                autocomplete="off" 
-                autofocus
-            >
-            <div class="ai-status">AI READY</div>
-        </div>
+        <span class="prompt-symbol">❯</span>
+        <input
+          type="text"
+          id="commandInput"
+          placeholder="Awaiting command..."
+          autocomplete="off"
+          autofocus
+        />
+        <div class="ai-status">AI READY</div>
       </div>
     </div>
 
-    <div class="watermark">Engineered by M.Abdullah Iqbal</div>
+    <div class="watermark">
+      <span class="wm-title">ABX//SYSTEMS</span>
+      <span class="wm-author">M.Abdullah Iqbal</span>
+    </div>
 
     <script src="src/renderer.js"></script>
-</body>
+  </body>
 </html>

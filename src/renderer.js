@@ -77,7 +77,7 @@ async function showWelcomeMessage() {
   term.clear(); // Wipe screen before starting
 
   // 1. Header (Fast)
-  await typeLine(`${magenta} ABX-TERMINAL v1.0 /// SYSTEM ONLINE ${reset}`, 5);
+  await typeLine(`${magenta} ABX-TERMINAL v1.2 /// SYSTEM ONLINE ${reset}`, 5);
   await typeLine(" ------------------------------------------------", 1);
 
   // 2. User Info (Standard Speed)
@@ -86,7 +86,7 @@ async function showWelcomeMessage() {
     15
   );
   await typeLine(
-    ` Role: ${green}CS Major @ FAST-NU${reset} | ${green}Aspiring Data Scientist${reset}`,
+    ` Role: ${green}CS Major @ FAST-NU${reset} | ${green}Aspiring Computer Scientist${reset}`,
     10
   );
   await typeLine(" ------------------------------------------------", 1);
@@ -231,7 +231,7 @@ inputField.addEventListener("keydown", async (e) => {
       term.writeln("\x1b[31m Shutting down systems...\x1b[0m");
       setTimeout(() => {
         ipcRenderer.send("app-close");
-      }, 800); // Small delay for dramatic effect
+      }, 1800); // Small delay for dramatic effect
       return;
     }
 
@@ -459,6 +459,8 @@ createStars();
 function startLiveStats() {
   const cpuBar = document.getElementById("cpu-bar");
   const ramBar = document.getElementById("ram-bar");
+  const cpuText = document.getElementById("cpu-val"); // Get text element
+  const ramText = document.getElementById("ram-val"); // Get text element
   const netStatus = document.querySelector(".status-text");
 
   // We update the stats every 2 seconds
@@ -471,7 +473,10 @@ function startLiveStats() {
 
     // 3. Apply the width to the bars
     if (cpuBar) cpuBar.style.width = `${cpuVal}%`;
+    if (cpuText) cpuText.innerText = `${cpuVal}%`; // Update number
+
     if (ramBar) ramBar.style.width = `${ramVal}%`;
+    if (ramText) ramText.innerText = `${ramVal}%`; // Update number
 
     // 4. Random "Network Glitch" (Rarely flickers to OFFLINE)
     // 95% chance to be ONLINE, 5% chance of a blip
