@@ -16,7 +16,31 @@
 
     <div class="drag-bar">ABX // TERMINAL</div>
 
-    <div id="terminal-container"></div>
+    <div class="main-deck">
+        
+        <div class="sidebar">
+            <div class="widget">
+                <div class="widget-title">CPU LOAD</div>
+                <div class="bar-container">
+                    <div class="bar-fill" id="cpu-bar" style="width: 45%"></div>
+                </div>
+            </div>
+            
+            <div class="widget">
+                <div class="widget-title">MEMORY</div>
+                <div class="bar-container">
+                    <div class="bar-fill" id="ram-bar" style="width: 60%"></div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">NET STATUS</div>
+                <div class="status-text online">ONLINE</div>
+            </div>
+        </div>
+
+        <div id="terminal-container"></div>
+    </div>
 
     <div class="command-deck">
       <div class="input-wrapper">
@@ -37,5 +61,4 @@
 
     <script src="src/renderer.js"></script>
 </body>
-
 </html>

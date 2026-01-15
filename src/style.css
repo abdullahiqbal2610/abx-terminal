@@ -1,9 +1,8 @@
 /* === 1. CORE WINDOW (THE GLASS) === */
 body {
-  margin: 0; /* Fixes the "transparent edges" gap */
+  margin: 0;
   height: 100vh;
   width: 100vw;
-  /* The Magic Combo: Low Opacity + High Blur */
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(15px);
   color: #e0e0e0;
@@ -11,16 +10,15 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* Neon Border Glow */
   border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: 12px; /* Smooth corners */
+  border-radius: 12px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 /* === 2. DRAG BAR === */
 .drag-bar {
   height: 32px;
-  background: rgba(255, 255, 255, 0.05); /* Slight highlight */
+  background: rgba(255, 255, 255, 0.05);
   -webkit-app-region: drag;
   display: flex;
   align-items: center;
@@ -32,13 +30,79 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* === NEW: MAIN DECK LAYOUT === */
+/* This is the magic wrapper that puts sidebar & terminal side-by-side */
+.main-deck {
+  display: flex;
+  flex: 1; /* Takes up all available vertical space */
+  overflow: hidden; /* Prevents double scrollbars */
+}
+
+/* === NEW: SIDEBAR STYLING === */
+.sidebar {
+  width: 250px;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(168, 85, 247, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  backdrop-filter: blur(5px);
+}
+
+/* === NEW: WIDGETS === */
+.widget {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(168, 85, 247, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.widget-title {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+/* Progress Bars */
+.bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #a855f7;
+  box-shadow: 0 0 10px #a855f7;
+  transition: width 0.5s ease;
+}
+
+/* Net Status */
+.status-text {
+  font-size: 14px;
+  font-weight: bold;
+}
+.status-text.online {
+  color: #22c55e; /* Green */
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.status-text.offline {
+  color: #ef4444; /* Red warning color */
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
 /* === 3. TERMINAL CONTAINER === */
 #terminal-container {
-  flex: 1;
+  flex: 1; /* Takes remaining width */
   min-height: 200px;
-  padding: 15px 25px; /* More breathing room */
+  padding: 15px 25px;
   overflow: hidden;
-  background: transparent; /* Ensure terminal doesn't block stars */
+  background: transparent;
 }
 
 /* Scrollbar styling */
@@ -53,13 +117,13 @@ body {
 /* === 4. COMMAND DECK (Bottom Input) === */
 .command-deck {
   height: 65px;
-  background: rgba(0, 0, 0, 0.3); /* Darker stripe at bottom */
+  background: rgba(0, 0, 0, 0.3);
   border-top: 1px solid rgba(168, 85, 247, 0.2);
   display: flex;
   align-items: center;
   padding: 0 25px;
   position: relative;
-  z-index: 10; /* Keep it above stars */
+  z-index: 10;
 }
 
 .input-wrapper {
@@ -96,14 +160,14 @@ body {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
 }
 
-/* === 5. STARS (BRIGHTER & BIGGER) === */
+/* === 5. STARS === */
 .stars-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Behind everything */
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -112,11 +176,9 @@ body {
   border-radius: 50%;
   background: #ffffff;
   animation: starPulse 4s ease-in-out infinite;
-  /* Increased base glow so they pop against the background */
   box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
 }
 
-/* Colors - Increased Intensity */
 .star:nth-child(odd) {
   filter: drop-shadow(0 0 5px #60a5fa);
 }
@@ -140,14 +202,13 @@ body {
 /* === 7. SIGNATURE WATERMARK === */
 .watermark {
   position: absolute;
-  bottom: 85px; /* Just above the input bar */
+  bottom: 85px;
   right: 25px;
   font-family: "Consolas", monospace;
   font-size: 10px;
   letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.15); /* Very faint ghost text */
-  pointer-events: none; /* Let clicks pass through it */
+  color: rgba(255, 255, 255, 0.15);
+  pointer-events: none;
   z-index: 5;
   text-transform: uppercase;
 }
-

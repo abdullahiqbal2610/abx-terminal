@@ -454,3 +454,40 @@ function createStars() {
   }
 }
 createStars();
+
+// === WIDGET SYSTEM VITALITY ===
+function startLiveStats() {
+  const cpuBar = document.getElementById("cpu-bar");
+  const ramBar = document.getElementById("ram-bar");
+  const netStatus = document.querySelector(".status-text");
+
+  // We update the stats every 2 seconds
+  setInterval(() => {
+    // 1. Simulate CPU (Random fluctuation between 20% and 80%)
+    const cpuVal = Math.floor(Math.random() * 60) + 20;
+
+    // 2. Simulate RAM (Random fluctuation between 40% and 90%)
+    const ramVal = Math.floor(Math.random() * 50) + 40;
+
+    // 3. Apply the width to the bars
+    if (cpuBar) cpuBar.style.width = `${cpuVal}%`;
+    if (ramBar) ramBar.style.width = `${ramVal}%`;
+
+    // 4. Random "Network Glitch" (Rarely flickers to OFFLINE)
+    // 95% chance to be ONLINE, 5% chance of a blip
+    if (netStatus) {
+      const isOnline = Math.random() > 0.05;
+      netStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
+      netStatus.className = isOnline
+        ? "status-text online"
+        : "status-text offline";
+
+      // If offline, turn text red (you'll need a CSS rule for .offline)
+      if (!isOnline) netStatus.style.color = "#ef4444";
+      else netStatus.style.color = ""; // Reset to CSS default
+    }
+  }, 2000); // 2000ms = 2 seconds
+}
+
+// Start the simulation
+startLiveStats();
