@@ -2,6 +2,8 @@ const { ipcRenderer } = require("electron");
 const { Terminal } = require("@xterm/xterm");
 const { FitAddon } = require("@xterm/addon-fit");
 const path = require("path");
+const os = require("os");
+
 
 // Safe Import Logic for AI
 let askGemini;
@@ -455,44 +457,77 @@ function createStars() {
 }
 createStars();
 
-// === WIDGET SYSTEM VITALITY ===
+// === REAL-TIME HARDWARE MONITOR ===
 function startLiveStats() {
   const cpuBar = document.getElementById("cpu-bar");
   const ramBar = document.getElementById("ram-bar");
-  const cpuText = document.getElementById("cpu-val"); // Get text element
-  const ramText = document.getElementById("ram-val"); // Get text element
+  const cpuText = document.getElementById("cpu-val");
+  const ramText = document.getElementById("ram-val");
   const netStatus = document.querySelector(".status-text");
 
-  // We update the stats every 2 seconds
-  setInterval(() => {
-    // 1. Simulate CPU (Random fluctuation between 20% and 80%)
-    const cpuVal = Math.floor(Math.random() * 60) + 20;
-
-    // 2. Simulate RAM (Random fluctuation between 40% and 90%)
-    const ramVal = Math.floor(Math.random() * 50) + 40;
-
-    // 3. Apply the width to the bars
-    if (cpuBar) cpuBar.style.width = `${cpuVal}%`;
-    if (cpuText) cpuText.innerText = `${cpuVal}%`; // Update number
-
-    if (ramBar) ramBar.style.width = `${ramVal}%`;
-    if (ramText) ramText.innerText = `${ramVal}%`; // Update number
-
-    // 4. Random "Network Glitch" (Rarely flickers to OFFLINE)
-    // 95% chance to be ONLINE, 5% chance of a blip
-    if (netStatus) {
-      const isOnline = Math.random() > 0.05;
-      netStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
-      netStatus.className = isOnline
-        ? "status-text online"
-        : "status-text offline";
-
-      // If offline, turn text red (you'll need a CSS rule for .offline)
-      if (!isOnline) netStatus.style.color = "#ef4444";
-      else netStatus.style.color = ""; // Reset to CSS default
+  // Helper: Get exact CPU info snapshot
+  function getCpuInfo() {
+    const cpus = os.cpus();
+    let user = 0, nice = 0, sys = 0, idle = 0, irq = 0;
+    
+    for (let cpu of cpus) {
+      user += cpu.times.user;
+      nice += cpu.times.nice;
+      sys += cpu.times.sys;
+      idle += cpu.times.idle;
+      irq += cpu.times.irq;
     }
-  }, 2000); // 2000ms = 2 seconds
+    const total = user + nice + sys + idle + irq;
+    return { idle, total };
+  }
+
+  // 1. Initial Snapshot
+  let startMeasure = getCpuInfo();
+
+  setInterval(() => {
+    // --- CPU CALCULATION ---
+    const endMeasure = getCpuInfo();
+    const idleDiff = endMeasure.idle - startMeasure.idle;
+    const totalDiff = endMeasure.total - startMeasure.total;
+    
+    // Calculate percentage used
+    const cpuPercentage = totalDiff === 0 ? 0 : (1 - idleDiff / totalDiff) * 100;
+    const cpuFinal = Math.round(cpuPercentage);
+
+    // Update Start Measure for next loop
+    startMeasure = endMeasure;
+
+    // --- RAM CALCULATION ---
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    const ramFinal = Math.round((usedMem / totalMem) * 100);
+
+    // --- UPDATE UI ---
+    if (cpuBar) cpuBar.style.width = `${cpuFinal}%`;
+    if (cpuText) cpuText.innerText = `${cpuFinal}%`;
+
+    if (ramBar) ramBar.style.width = `${ramFinal}%`;
+    if (ramText) ramText.innerText = `${ramFinal}%`;
+
+  }, 1000); // Update every 1 second for precision
+
+  // --- REAL NETWORK STATUS ---
+  function updateOnlineStatus() {
+    const isOnline = navigator.onLine;
+    if (netStatus) {
+        netStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
+        netStatus.className = isOnline ? "status-text online" : "status-text offline";
+    }
+  }
+
+  // Listen for browser network events
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  
+  // Run once on startup
+  updateOnlineStatus();
 }
 
-// Start the simulation
+// Start the monitor
 startLiveStats();
