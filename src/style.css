@@ -1,149 +1,215 @@
-/* === 1. CORE WINDOW (THE GLASS) === */
+/* =========================================
+   THEME: HYPER-GLASS AURORA
+   VIBE: High-End Sci-Fi / Orbital Command
+   AUTHOR: Gemini x Abdullah
+   ========================================= */
+
+/* === 1. CORE WINDOW & ANIMATED BACKGROUND === */
 body {
   margin: 0;
   height: 100vh;
   width: 100vw;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(15px);
-  color: #e0e0e0;
+  color: #e0f2fe; /* Soft Ice White text */
   font-family: "Consolas", "Courier New", monospace;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+
+  /* The "Aurora" Gradient Background */
+  background: radial-gradient(circle at 50% 50%, #1e1b4b, #020617);
+  background-size: 200% 200%;
+  animation: auroraMove 15s ease infinite;
+
+  /* Glass Border & Glow */
+  border: 1px solid rgba(34, 211, 238, 0.3); /* Cyan Border */
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.2); /* Deep Cyan Glow */
 }
 
-/* === 2. DRAG BAR === */
+/* The "Breathing" Background Animation */
+@keyframes auroraMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* === 2. CRT SCANLINE OVERLAY (The "Texture") === */
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none; /* Let clicks pass through */
+  z-index: 999; /* Sit on top of everything */
+  opacity: 0.4;
+}
+
+/* === 3. DRAG BAR === */
 .drag-bar {
   height: 32px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   -webkit-app-region: drag;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #22d3ee; /* Cyan Text */
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
   user-select: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(34, 211, 238, 0.1);
+  z-index: 1000;
 }
 
-/* === MAIN DECK LAYOUT === */
+/* === 4. LAYOUT CONTAINERS === */
 .main-deck {
   display: flex;
-  flex: 1; /* Takes up all available vertical space */
-  overflow: hidden; /* Prevents double scrollbars */
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
 }
 
-/* === SIDEBAR STYLING === */
+/* === 5. SIDEBAR (Frosted Glass) === */
 .sidebar {
-  width: 250px;
-  background: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid rgba(168, 85, 247, 0.2);
-  padding: 20px;
+  width: 260px;
+  background: rgba(15, 23, 42, 0.6); /* Darker Navy tint */
+  border-right: 1px solid rgba(34, 211, 238, 0.15);
+  padding: 25px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  backdrop-filter: blur(5px);
+  gap: 25px;
+  backdrop-filter: blur(10px);
 }
 
-/* === WIDGETS === */
+/* === 6. WIDGETS (Holographic Panels) === */
 .widget {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(168, 85, 247, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(34, 211, 238, 0.1);
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-/* NEW: Flex header for Title + Number */
+/* The little "accent corner" on widgets */
+.widget::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: #22d3ee; /* Cyan Stripe */
+  box-shadow: 0 0 8px #22d3ee;
+}
+
 .widget-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .widget-title {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
+  color: rgba(224, 242, 254, 0.6);
   letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
-/* NEW: The numeric percentage display */
 .widget-val {
-  font-size: 12px;
-  color: #a855f7;
+  font-size: 14px;
+  color: #22d3ee; /* Cyan */
   font-weight: bold;
-  text-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
 }
 
-/* Progress Bars */
+/* === 7. PROGRESS BARS (Laser Beams) === */
 .bar-container {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  height: 4px;
+  background: rgba(34, 211, 238, 0.1);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-/* NEW: Segmented/Striped Bar Look */
 .bar-fill {
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    #a855f7,
-    #a855f7 4px,
-    transparent 4px,
-    transparent 6px
-  );
-  box-shadow: 0 0 10px #a855f7;
-  transition: width 0.5s ease;
+  /* The "Laser Beam" Gradient */
+  background: linear-gradient(90deg, #0891b2, #22d3ee);
+  box-shadow: 0 0 15px #22d3ee;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); /* Smooth mechanical ease */
 }
 
-/* Net Status */
+/* === 8. STATUS INDICATORS === */
 .status-text {
   font-size: 14px;
   font-weight: bold;
+  letter-spacing: 1px;
 }
 .status-text.online {
-  color: #22c55e; /* Green */
-  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  color: #4ade80; /* Neon Green */
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.8);
 }
 .status-text.offline {
-  color: #ef4444; /* Red warning color */
-  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  color: #f87171; /* Neon Red */
+  text-shadow: 0 0 12px rgba(248, 113, 113, 0.8);
 }
 
-/* === 3. TERMINAL CONTAINER === */
+/* === 9. TERMINAL AREA === */
 #terminal-container {
-  flex: 1; /* Takes remaining width */
+  flex: 1;
   min-height: 200px;
-  padding: 15px 25px;
-  overflow: hidden;
+  padding: 20px 30px;
   background: transparent;
+  /* Make selection distinct */
+  ::selection {
+    background: rgba(34, 211, 238, 0.3);
+    color: white;
+  }
 }
 
-/* Scrollbar styling */
+/* Scrollbar - ultra thin */
 .xterm-viewport::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .xterm-viewport::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.4);
-  border-radius: 3px;
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 2px;
 }
 
-/* === 4. COMMAND DECK (Bottom Input) === */
+/* === 10. COMMAND DECK (Input Area) === */
 .command-deck {
-  height: 65px;
-  background: rgba(0, 0, 0, 0.3);
-  border-top: 1px solid rgba(168, 85, 247, 0.2);
+  height: 70px;
+  background: rgba(2, 6, 23, 0.8); /* Very dark footer */
+  border-top: 1px solid rgba(34, 211, 238, 0.2);
   display: flex;
   align-items: center;
-  padding: 0 25px;
+  padding: 0 30px;
   position: relative;
   z-index: 10;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .input-wrapper {
@@ -154,9 +220,25 @@ body {
 }
 
 .prompt-symbol {
-  color: #a855f7;
-  font-size: 1.4rem;
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+  color: #22d3ee; /* Cyan Prompt */
+  font-size: 1.6rem;
+  text-shadow: 0 0 15px rgba(34, 211, 238, 0.9);
+  animation: pulsePrompt 1.5s infinite alternate;
+}
+
+@keyframes pulsePrompt {
+  0% {
+    opacity: 1;
+    /* Intense "On" State: Double layer glow */
+    text-shadow:
+      0 0 20px rgba(34, 211, 238, 1),
+      0 0 10px rgba(34, 211, 238, 0.8);
+  }
+  100% {
+    opacity: 0.7; /* Don't fade out as much (was 0.6) */
+    /* Dimmer "Off" State: Still glowing slightly */
+    text-shadow: 0 0 5px rgba(34, 211, 238, 0.4);
+  }
 }
 
 #commandInput {
@@ -167,84 +249,65 @@ body {
   font-family: "Consolas", monospace;
   font-size: 1.1rem;
   outline: none;
-  caret-color: #a855f7;
+  caret-color: #22d3ee; /* Cyan Cursor */
 }
 
+/* The "Badge" next to input */
 .ai-status {
-  font-size: 0.7rem;
-  color: #a855f7;
-  border: 1px solid rgba(168, 85, 247, 0.5);
-  padding: 4px 8px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #0ea5e9;
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  padding: 6px 10px;
   border-radius: 4px;
-  background: rgba(168, 85, 247, 0.1);
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+  background: rgba(14, 165, 233, 0.05);
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+  text-transform: uppercase;
 }
 
-/* === 5. STARS === */
+/* === 11. STARS (Subtle Background Depth) === */
 .stars-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
-  pointer-events: none;
+  z-index: -2; /* Behind the gradient */
+  opacity: 0.6; /* Faded for depth */
 }
 
-.star {
-  position: absolute;
-  border-radius: 50%;
-  background: #ffffff;
-  animation: starPulse 4s ease-in-out infinite;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-}
-
-.star:nth-child(odd) {
-  filter: drop-shadow(0 0 5px #60a5fa);
-}
-.star:nth-child(even) {
-  filter: drop-shadow(0 0 5px #a78bfa);
-}
-
-@keyframes starPulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.4);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
-  }
-}
-
-/* === 7. SIGNATURE WATERMARK (UPDATED) === */
+/* === 12. SIGNATURE WATERMARK (Holo-Badge) === */
 .watermark {
   position: absolute;
-  bottom: 80px;
-  right: 25px;
+  bottom: 75px;
+  right: 30px;
   z-index: 5;
-
-  /* The "Badge" Look */
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border-right: 2px solid rgba(168, 85, 247, 0.5);
-  padding-right: 10px;
+  border-right: 2px solid rgba(34, 211, 238, 0.4);
+  padding-right: 12px;
   pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.3s;
 }
+.watermark:hover {
+  opacity: 1;
+} /* Brightens if you hover nearby */
 
 .wm-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #e0f2fe;
+  letter-spacing: 3px;
+  margin-bottom: 2px;
 }
 
 .wm-author {
-  font-size: 10px;
-  color: rgba(168, 85, 247, 0.8); /* Purple tint */
+  font-size: 9px;
+  color: #22d3ee;
   letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 0 5px rgba(34, 211, 238, 0.4);
 }

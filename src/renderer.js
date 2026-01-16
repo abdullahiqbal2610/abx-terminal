@@ -86,17 +86,17 @@ async function showWelcomeMessage() {
     15
   );
   await typeLine(
-    ` Role: ${green}CS Major @ FAST-NU${reset} | ${green}Aspiring Computer Scientist${reset}`,
+    ` Role: ${cyan}CS Major @ FAST-NU${reset} | ${cyan}Aspiring Computer Scientist${reset}`,
     10
   );
   await typeLine(" ------------------------------------------------", 1);
 
   // 3. System Checks (Add slight pauses for realism)
   await new Promise((r) => setTimeout(r, 200)); // Processing pause...
-  await typeLine(` ${gray}> Neural Link... ${green}Active${reset}`, 20);
+  await typeLine(` ${gray}> Neural Link... ${cyan}Active${reset}`, 20);
 
   await new Promise((r) => setTimeout(r, 200)); // Processing pause...
-  await typeLine(` ${gray}> Gemini 2.5...  ${green}Connected${reset}`, 20);
+  await typeLine(` ${gray}> Gemini 2.5...  ${cyan}Connected${reset}`, 20);
 
   // 4. Signature & Ready (Slow & Dramatic)
   await new Promise((r) => setTimeout(r, 400));
@@ -231,7 +231,7 @@ inputField.addEventListener("keydown", async (e) => {
       term.writeln("\x1b[31m Shutting down systems...\x1b[0m");
       setTimeout(() => {
         ipcRenderer.send("app-close");
-      }, 1800); // Small delay for dramatic effect
+      }, 2000); // Small delay for dramatic effect
       return;
     }
 
