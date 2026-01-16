@@ -3,7 +3,8 @@ const { Terminal } = require("@xterm/xterm");
 const { FitAddon } = require("@xterm/addon-fit");
 const path = require("path");
 const os = require("os");
-
+const fs = require("fs"); // Required for file reading
+const { exec } = require("child_process");
 
 // Safe Import Logic for AI
 let askGemini;
@@ -53,36 +54,95 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-// ==========================================
 
 // === TYPEWRITER HELPER ===
-// Types text character-by-character.
-// 'delay' is the speed in ms (Lower = Faster).
 async function typeLine(text, delay = 15) {
   for (const char of text) {
     term.write(char);
     await new Promise((r) => setTimeout(r, delay));
   }
-  term.write("\r\n"); // Press Enter after the line
+  term.write("\r\n");
+}
+
+// === SMART WORD WRAPPER ===
+function writeSmart(text) {
+  const maxWidth = term.cols - 2;
+
+  const paragraphs = text.split("\n");
+  paragraphs.forEach((paragraph) => {
+    if (paragraph.length <= maxWidth) {
+      term.writeln(paragraph);
+    } else {
+      const words = paragraph.split(" ");
+      let currentLine = "";
+      words.forEach((word) => {
+        if ((currentLine + word).length > maxWidth) {
+          term.writeln(currentLine);
+          currentLine = word + " ";
+        } else {
+          currentLine += word + " ";
+        }
+      });
+      if (currentLine) term.writeln(currentLine);
+    }
+  });
+}
+
+// === CONTEXT INJECTION (SMART READER) ===
+function augmentPromptWithFiles(inputText) {
+  const words = inputText.split(" ");
+  let fileContext = "";
+
+  const homeDir = os.homedir();
+  const searchPaths = [
+    process.cwd(), // 1. App Folder
+    path.join(homeDir, "OneDrive", "Desktop"), // 2. OneDrive Desktop
+    path.join(homeDir, "Desktop"), // 3. Standard Desktop
+  ];
+
+  words.forEach((word) => {
+    // Check if word looks like a file (has extension)
+    if (word.includes(".") && !word.startsWith("http")) {
+      const cleanFileName = word.replace(/[?!,"']/g, "").trim();
+
+      for (const basePath of searchPaths) {
+        const potentialPath = path.isAbsolute(cleanFileName)
+          ? cleanFileName
+          : path.join(basePath, cleanFileName);
+
+        if (fs.existsSync(potentialPath)) {
+          try {
+            const content = fs.readFileSync(potentialPath, "utf-8");
+            // Inject content clearly for AI
+            fileContext += `\n\n--- CONTEXT: CONTENT OF ${cleanFileName} ---\n${content}\n--- END OF FILE ---\n`;
+            console.log(`[System] Successfully read: ${cleanFileName}`);
+            break;
+          } catch (err) {
+            console.error(`[System] Error reading ${cleanFileName}:`, err);
+          }
+        }
+      }
+    }
+  });
+
+  return inputText + fileContext;
 }
 
 // === ANIMATED WELCOME FUNCTION ===
 async function showWelcomeMessage() {
-  // Define Colors for cleaner code
   const magenta = "\x1b[1;35m";
   const cyan = "\x1b[1;36m";
-  const green = "\x1b[32m";
   const gray = "\x1b[90m";
   const italic = "\x1b[3m";
   const reset = "\x1b[0m";
 
-  term.clear(); // Wipe screen before starting
+  term.clear();
 
-  // 1. Header (Fast)
+  // 1. Header
   await typeLine(`${magenta} ABX-TERMINAL v1.2 /// SYSTEM ONLINE ${reset}`, 5);
   await typeLine(" ------------------------------------------------", 1);
 
-  // 2. User Info (Standard Speed)
+  // 2. User Info
   await typeLine(
     ` User Identity Verified: ${cyan}M.Abdullah Iqbal${reset}`,
     15
@@ -93,14 +153,14 @@ async function showWelcomeMessage() {
   );
   await typeLine(" ------------------------------------------------", 1);
 
-  // 3. System Checks (Add slight pauses for realism)
-  await new Promise((r) => setTimeout(r, 200)); // Processing pause...
+  // 3. System Checks
+  await new Promise((r) => setTimeout(r, 200));
   await typeLine(` ${gray}> Neural Link... ${cyan}Active${reset}`, 20);
 
-  await new Promise((r) => setTimeout(r, 200)); // Processing pause...
+  await new Promise((r) => setTimeout(r, 200));
   await typeLine(` ${gray}> Gemini 2.5...  ${cyan}Connected${reset}`, 20);
 
-  // 4. Signature & Ready (Slow & Dramatic)
+  // 4. Signature
   await new Promise((r) => setTimeout(r, 400));
   await typeLine(
     `\r\n ${italic}${gray}Engineered & Developed by M.Abdullah Iqbal${reset}`,
@@ -110,95 +170,62 @@ async function showWelcomeMessage() {
   term.writeln("\r\n Ready for input, Commander.\r\n");
 }
 
-// === VOICE MODULE (IMPROVED) ===
+// === VOICE MODULE ===
 let selectedVoice = null;
-
-// Load voices when they are ready (Chrome/Electron loads them async)
 window.speechSynthesis.onvoiceschanged = () => {
   const voices = window.speechSynthesis.getVoices();
-  console.log("=== AVAILABLE VOICES ===");
-  voices.forEach((v) => console.log(`Name: ${v.name} | Lang: ${v.lang}`));
-
-  // PRIORITY LIST: Try to find these specific high-quality voices
   selectedVoice =
-    voices.find((v) => v.name.includes("Google US English")) || // Best free one usually
-    voices.find((v) => v.name.includes("Microsoft Aria Online (Natural)")) || // Amazing if available
+    voices.find((v) => v.name.includes("Google US English")) ||
+    voices.find((v) => v.name.includes("Microsoft Aria Online")) ||
     voices.find((v) => v.name.includes("Natural")) ||
-    voices.find((v) => v.name.includes("Zira")); // Fallback
+    voices.find((v) => v.name.includes("Zira"));
 };
 
 function speak(text) {
   if (!text) return;
-
-  // 1. Stop any current speech
   window.speechSynthesis.cancel();
-
-  // 2. Clean text
   const cleanText = text.replace(/^AI:\s*/i, "").trim();
-
-  // 3. Create utterance
   const utterance = new SpeechSynthesisUtterance(cleanText);
-
-  // 4. Assign the best voice we found
-  if (selectedVoice) {
-    utterance.voice = selectedVoice;
-  }
-
-  // 5. TUNING: Make it sound more "AI" and less "GPS"
-  utterance.rate = 1.05; // Slightly faster
-  utterance.pitch = 0.9; // Slightly lower (more serious)
-
-  // 6. Speak
+  if (selectedVoice) utterance.voice = selectedVoice;
+  utterance.rate = 1.05;
+  utterance.pitch = 0.9;
   window.speechSynthesis.speak(utterance);
 }
-// // Initial Bootup Sequence
+
+// === BOOTUP SEQUENCE ===
 setTimeout(() => {
   fitAddon.fit();
 
-  // === 1. THE GHOST MANEUVER 👻 ===
-  // This secretly navigates to your specific OneDrive Desktop folder
+  // Ghost Maneuver: Navigate to Desktop silently
   const magicPath = "cd C:\\Users\\abdul\\OneDrive\\Desktop";
   ipcRenderer.send("terminal-keystroke", magicPath + "\r\n");
 
-  // === 2. HIDE THE EVIDENCE ===
-  // We wait 100ms for the CD command to finish, then clear the screen
-  // and start the cool typewriter animation.
   setTimeout(() => {
     term.clear();
     showWelcomeMessage();
   }, 100);
 
-  // === THE FINAL SCROLLBAR KILLER ===
+  // Final Scrollbar Killer
   const css = `
-        .xterm-viewport::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-            background: transparent !important;
-        }
-        .xterm-viewport::-webkit-scrollbar-thumb {
-            display: none !important;
-        }
+        .xterm-viewport::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        .xterm-viewport::-webkit-scrollbar-thumb { display: none !important; }
     `;
-  const head = document.head || document.getElementsByTagName("head")[0];
   const style = document.createElement("style");
-  style.appendChild(document.createTextNode(css));
-  head.appendChild(style);
-  // =================================
+  style.textContent = css;
+  document.head.appendChild(style);
 }, 100);
 
-// 2. LISTEN FOR OUTPUT
+// LISTEN FOR OUTPUT
 ipcRenderer.on("terminal-incoming", (event, data) => {
   term.write(data);
 });
 
-// === 3. COMMAND HISTORY & INPUT HANDLING ===
+// === COMMAND HISTORY & INPUT HANDLING ===
 const inputField = document.getElementById("commandInput");
 let commandHistory = [];
 let historyIndex = -1;
 
 inputField.addEventListener("keydown", async (e) => {
-  // --- FEATURE: COMMAND HISTORY (UP/DOWN) ---
   if (e.key === "ArrowUp") {
     if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
       historyIndex++;
@@ -217,48 +244,50 @@ inputField.addEventListener("keydown", async (e) => {
     }
   }
 
-  // --- FEATURE: EXECUTE COMMAND (ENTER) ---
+  // --- EXECUTE COMMAND ---
   else if (e.key === "Enter") {
     const rawCommand = inputField.value.trim();
     if (!rawCommand) return;
 
-    // Save to History
+    term.writeln(`\r\n\x1b[1;36m❯ ${rawCommand}\x1b[0m`);
+
     commandHistory.push(rawCommand);
     historyIndex = -1;
     inputField.value = "";
 
-    // Handle Close Commands
-    const closeCommands = ["exit", "quit", "bye", "over n out"];
-    if (closeCommands.includes(rawCommand.toLowerCase())) {
-      term.writeln("\x1b[31m Shutting down systems...\x1b[0m");
-      setTimeout(() => {
-        ipcRenderer.send("app-close");
-      }, 2000); // Small delay for dramatic effect
+    // 1. GOD MODE CHECK
+    if (executeSystemCommand(rawCommand)) {
       return;
     }
 
-    // --- FEATURE: CLS (SMART CLEAR) ---
+    // 2. CLOSE CHECK
+    const closeCommands = ["exit", "quit", "bye", "over n out"];
+    if (closeCommands.includes(rawCommand.toLowerCase())) {
+      term.writeln(
+        "\r\n\x1b[31m [SYSTEM] Initiating Shutdown Sequence...\x1b[0m"
+      );
+      term.writeln("\x1b[31m [SYSTEM] Disconnecting Neural Link...\x1b[0m");
+      setTimeout(() => {
+        ipcRenderer.send("app-close");
+      }, 2000);
+      return;
+    }
+
+    // 3. CLS CHECK
     if (
       rawCommand.toLowerCase() === "cls" ||
       rawCommand.toLowerCase() === "clear"
     ) {
-      term.clear(); // Wipe the mess
-      ipcRenderer.send("terminal-keystroke", "cls\r\n"); // Reset PowerShell
-
-      // RE-PRINT HEADER (Now this works because function exists!)
+      term.clear();
+      ipcRenderer.send("terminal-keystroke", "cls\r\n");
       setTimeout(() => {
         showWelcomeMessage();
       }, 50);
       return;
     }
 
-    // Echo Command
-    term.writeln("\r\n\x1b[1;32m❯ " + rawCommand + "\x1b[0m");
-
-    // === SMART DETECTION LOGIC ===
-    // === SMART DETECTION LOGIC ===
+    // 4. AI PROCESSING
     const aiTriggers = [
-      // 1. QUESTIONS & INFO
       "how",
       "what",
       "who",
@@ -279,8 +308,6 @@ inputField.addEventListener("keydown", async (e) => {
       "get",
       "calculate",
       "count",
-
-      // 2. CREATION & GENERATION
       "create",
       "make",
       "generate",
@@ -293,8 +320,6 @@ inputField.addEventListener("keydown", async (e) => {
       "add",
       "insert",
       "setup",
-
-      // 3. MODIFICATION & EDITING
       "update",
       "change",
       "modify",
@@ -311,8 +336,6 @@ inputField.addEventListener("keydown", async (e) => {
       "refactor",
       "clean",
       "format",
-
-      // 4. FILE & SYSTEM ACTIONS
       "remove",
       "delete",
       "del",
@@ -336,8 +359,6 @@ inputField.addEventListener("keydown", async (e) => {
       "uninstall",
       "download",
       "fetch",
-
-      // 5. CONVERSATION & POLITE REQUESTS
       "hello",
       "hi",
       "hey",
@@ -362,76 +383,62 @@ inputField.addEventListener("keydown", async (e) => {
       term.writeln("\x1b[35m [AI] Processing...\x1b[0m");
 
       const instruction = isExplicitAI ? rawCommand.substring(1) : rawCommand;
-      const aiResponse = await askGemini(instruction);
 
-      // === SMARTER EXECUTION LOGIC ===
-      if (isExplicitAI || isImplicitAI) {
-        term.writeln("\x1b[35m [AI] Processing...\x1b[0m");
+      // === INJECT FILES HERE ===
+      const finalPrompt = augmentPromptWithFiles(instruction);
 
-        const instruction = isExplicitAI ? rawCommand.substring(1) : rawCommand;
+      try {
+        const aiResponse = await askGemini(finalPrompt);
 
-        try {
-          const aiResponse = await askGemini(instruction);
+        if (!aiResponse || typeof aiResponse !== "string") {
+          throw new Error("AI returned an empty or invalid response.");
+        }
 
-          // === CRITICAL FIX: DEFENSIVE CODING ===
-          // We check if aiResponse exists AND is a string before using it.
-          if (!aiResponse || typeof aiResponse !== "string") {
-            throw new Error("AI returned an empty or invalid response.");
-          }
+        // BATCH CMD LOGIC
+        if (aiResponse.startsWith("CMD:")) {
+          const rawCmds = aiResponse.replace("CMD:", "").trim();
+          const commandList = rawCmds.split("|||");
 
-          // === BATCH EXECUTION LOGIC ===
-
-          // 1. IS IT A COMMAND? (Handles Single & Batch)
-          if (aiResponse.startsWith("CMD:")) {
-            const rawCmds = aiResponse.replace("CMD:", "").trim();
-            // Split by our special delimiter
-            const commandList = rawCmds.split("|||");
-
-            for (const cmd of commandList) {
-              const cleanCmd = cmd.trim();
-              if (cleanCmd) {
-                term.writeln("\x1b[35m [AI] Queueing: " + cleanCmd + "\x1b[0m");
-                ipcRenderer.send("terminal-keystroke", cleanCmd + "\r\n");
-
-                // Small delay so commands don't trip over each other
-                await new Promise((r) => setTimeout(r, 300));
-              }
+          for (const cmd of commandList) {
+            const cleanCmd = cmd.trim();
+            if (cleanCmd) {
+              term.writeln("\x1b[35m [AI] Queueing: " + cleanCmd + "\x1b[0m");
+              ipcRenderer.send("terminal-keystroke", cleanCmd + "\r\n");
+              await new Promise((r) => setTimeout(r, 300));
             }
           }
-
-          // 2. IS IT CHAT?
-          else if (aiResponse.startsWith("AI:")) {
-            const chatText = aiResponse.replace("AI:", "").trim();
-            term.writeln("\r\n\x1b[1;36m AI: " + chatText + "\x1b[0m\r\n");
-            speak(chatText);
-          }
-
-          // 3. FALLBACK (Safety Net)
-          // If the AI forgets the prefix, treat it as chat to be safe
-          else {
-            term.writeln("\r\n\x1b[1;36m AI: " + aiResponse + "\x1b[0m\r\n");
-            speak(aiResponse);
-          }
-        } catch (err) {
-          // This catches any TypeErrors or Network errors and prints them safely
-          console.error("Processing Error:", err);
-          term.writeln(
-            "\r\n\x1b[31m [SYSTEM ERROR] " + err.message + "\x1b[0m\r\n"
-          );
         }
+        // CHAT LOGIC
+        else if (aiResponse.startsWith("AI:")) {
+          const chatText = aiResponse.replace("AI:", "").trim();
+          term.writeln("\r\n\x1b[1;36m AI:\x1b[0m"); // Header
+          writeSmart(chatText); // Use Smart Wrapper
+          term.write("\r\n");
+          speak(chatText);
+        }
+        // FALLBACK
+        else {
+          term.writeln("\r\n\x1b[1;36m AI:\x1b[0m");
+          writeSmart(aiResponse); // Use Smart Wrapper
+          term.write("\r\n");
+          speak(aiResponse);
+        }
+      } catch (err) {
+        console.error("Processing Error:", err);
+        term.writeln(
+          "\r\n\x1b[31m [SYSTEM ERROR] " + err.message + "\x1b[0m\r\n"
+        );
       }
     } else {
+      // Pass-through to standard shell
       ipcRenderer.send("terminal-keystroke", rawCommand + "\r\n");
     }
   }
 });
 
-// --- FEATURE: ESCAPE TO CLOSE ---
+// ESCAPE TO CLOSE
 document.addEventListener("keydown", (e) => {
-  // If user hits ESC, close the app
-  if (e.key === "Escape") {
-    ipcRenderer.send("app-close");
-  }
+  if (e.key === "Escape") ipcRenderer.send("app-close");
 });
 
 window.addEventListener("resize", () => fitAddon.fit());
@@ -465,11 +472,13 @@ function startLiveStats() {
   const ramText = document.getElementById("ram-val");
   const netStatus = document.querySelector(".status-text");
 
-  // Helper: Get exact CPU info snapshot
   function getCpuInfo() {
     const cpus = os.cpus();
-    let user = 0, nice = 0, sys = 0, idle = 0, irq = 0;
-    
+    let user = 0,
+      nice = 0,
+      sys = 0,
+      idle = 0,
+      irq = 0;
     for (let cpu of cpus) {
       user += cpu.times.user;
       nice += cpu.times.nice;
@@ -477,57 +486,99 @@ function startLiveStats() {
       idle += cpu.times.idle;
       irq += cpu.times.irq;
     }
-    const total = user + nice + sys + idle + irq;
-    return { idle, total };
+    return { idle, total: user + nice + sys + idle + irq };
   }
 
-  // 1. Initial Snapshot
   let startMeasure = getCpuInfo();
 
   setInterval(() => {
-    // --- CPU CALCULATION ---
     const endMeasure = getCpuInfo();
     const idleDiff = endMeasure.idle - startMeasure.idle;
     const totalDiff = endMeasure.total - startMeasure.total;
-    
-    // Calculate percentage used
-    const cpuPercentage = totalDiff === 0 ? 0 : (1 - idleDiff / totalDiff) * 100;
-    const cpuFinal = Math.round(cpuPercentage);
-
-    // Update Start Measure for next loop
+    const cpuFinal = Math.round(
+      totalDiff === 0 ? 0 : (1 - idleDiff / totalDiff) * 100
+    );
     startMeasure = endMeasure;
 
-    // --- RAM CALCULATION ---
     const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const usedMem = totalMem - freeMem;
+    const usedMem = totalMem - os.freemem();
     const ramFinal = Math.round((usedMem / totalMem) * 100);
 
-    // --- UPDATE UI ---
     if (cpuBar) cpuBar.style.width = `${cpuFinal}%`;
     if (cpuText) cpuText.innerText = `${cpuFinal}%`;
-
     if (ramBar) ramBar.style.width = `${ramFinal}%`;
     if (ramText) ramText.innerText = `${ramFinal}%`;
+  }, 1000);
 
-  }, 1000); // Update every 1 second for precision
-
-  // --- REAL NETWORK STATUS ---
   function updateOnlineStatus() {
     const isOnline = navigator.onLine;
     if (netStatus) {
-        netStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
-        netStatus.className = isOnline ? "status-text online" : "status-text offline";
+      netStatus.innerText = isOnline ? "ONLINE" : "OFFLINE";
+      netStatus.className = isOnline
+        ? "status-text online"
+        : "status-text offline";
     }
   }
-
-  // Listen for browser network events
-  window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
-  
-  // Run once on startup
+  window.addEventListener("online", updateOnlineStatus);
+  window.addEventListener("offline", updateOnlineStatus);
   updateOnlineStatus();
 }
-
-// Start the monitor
 startLiveStats();
+
+// === GOD MODE SYSTEM CONTROL ===
+function executeSystemCommand(rawInput) {
+  const input = rawInput.trim();
+  const lowerInput = input.toLowerCase();
+
+  if (lowerInput.startsWith("search ") || lowerInput.startsWith("google ")) {
+    const query = input.split(" ").slice(1).join(" ");
+    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    term.writeln(
+      `\r\n\x1b[36m[SYSTEM] Searching Neural Net for: "${query}"...\x1b[0m`
+    );
+    exec(`start "" "${url}"`);
+    return true;
+  }
+
+  if (
+    lowerInput.startsWith("open ") &&
+    (lowerInput.includes(".com") || lowerInput.includes("http"))
+  ) {
+    let url = input.split(" ")[1];
+    if (!url.startsWith("http")) url = "https://" + url;
+    term.writeln(`\r\n\x1b[36m[SYSTEM] Establishing Uplink: ${url}...\x1b[0m`);
+    exec(`start "" "${url}"`);
+    return true;
+  }
+
+  if (
+    lowerInput.startsWith("launch ") ||
+    lowerInput.startsWith("run ") ||
+    lowerInput.startsWith("start ")
+  ) {
+    const appName = input.split(" ").slice(1).join(" ");
+    term.writeln(
+      `\r\n\x1b[32m[SYSTEM] Executing Protocol: ${appName}.exe\x1b[0m`
+    );
+    exec(`start ${appName}`);
+    return true;
+  }
+
+  const quickMap = {
+    calc: "calc",
+    calculator: "calc",
+    notepad: "notepad",
+    code: "code .",
+    files: "explorer .",
+    spotify: "start spotify:",
+    cmd: "start cmd",
+  };
+
+  if (quickMap[lowerInput]) {
+    term.writeln(`\r\n\x1b[32m[SYSTEM] Quick Launch: ${lowerInput}\x1b[0m`);
+    exec(quickMap[lowerInput]);
+    return true;
+  }
+
+  return false;
+}
